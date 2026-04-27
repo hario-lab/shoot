@@ -51,7 +51,10 @@ export default function App() {
     <div style={{ height: "100vh", overflow: "hidden", background: "#070c12", color: "#c9d1d9", fontFamily: "monospace", display: "flex", flexDirection: "column" }}>
       {/* Header */}
       <div style={{ background: "#0d1117", borderBottom: "1px solid #1e2d3d", padding: "9px 20px", display: "flex", alignItems: "center", gap: 16, flexShrink: 0 }}>
-        <div style={{ color: "#00ff88", fontWeight: "bold", fontSize: 13, letterSpacing: 3 }}>◈ ATT&CK SCENARIO ENGINE</div>
+        <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.2 }}>
+          <div style={{ color: "#00ff88", fontWeight: "bold", fontSize: 13, letterSpacing: 3 }}>◈ SHOOT</div>
+          <div style={{ color: "#8b949e", fontSize: 9, letterSpacing: 1, whiteSpace: "nowrap" }}>Structured Hunting of Online Threats</div>
+        </div>
         <div style={{ color: "#3d5168", fontSize: 11 }}>MITRE ATT&CK® Enterprise · {loading ? "…" : groups.length} groups</div>
 
         {/* Last updated badge */}
@@ -204,9 +207,9 @@ export default function App() {
 
       {/* Footer */}
       <div style={{ background: "#0d1117", borderTop: "1px solid #1e2d3d", padding: "6px 20px", flexShrink: 0, textAlign: "center", fontSize: 10, color: "#3d5168" }}>
-        Powered by MITRE ATT&amp;CK® &nbsp;|&nbsp; © 2025 The MITRE Corporation. This work is reproduced and distributed with the permission of The MITRE Corporation. &nbsp;|&nbsp;
+        Powered by MITRE ATT&amp;CK® &nbsp;|&nbsp; © {metadata?.mitreYear ?? new Date().getFullYear()} The MITRE Corporation. This work is reproduced and distributed with the permission of The MITRE Corporation. &nbsp;|&nbsp;
         <a href="https://attack.mitre.org/resources/legal-and-branding/terms-of-use/" target="_blank" rel="noreferrer" style={{ color: "#3d5168", textDecoration: "underline" }}>ATT&amp;CK Terms of Use</a>
-        &nbsp;|&nbsp; © 2025 <a href="https://hariolab.net" target="_blank" rel="noreferrer" style={{ color: "#3d5168", textDecoration: "underline" }}>hario-lab</a>
+        &nbsp;|&nbsp; © {metadata?.mitreYear ?? new Date().getFullYear()} <a href="https://hariolab.net" target="_blank" rel="noreferrer" style={{ color: "#3d5168", textDecoration: "underline" }}>hario-lab</a>
       </div>
 
       {/* Data update modal */}

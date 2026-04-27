@@ -1,4 +1,6 @@
-# ATT&CK Scenario Engine
+# SHOOT
+
+**Structured Hunting of Online Threats**
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19808360.svg)](https://doi.org/10.5281/zenodo.19808360)
 

@@ -207,13 +207,14 @@ async function main() {
   console.log(`[process-data] source=${source}`);
 
   let groups;
+  let bundle = null;
 
   if (source === 'mitre') {
     console.log('[process-data] Fetching from MITRE GitHub...');
     const res = await fetch(MITRE_URL);
     if (!res.ok) throw new Error(`HTTP ${res.status} fetching MITRE data`);
     console.log('[process-data] Parsing STIX bundle...');
-    const bundle = await res.json();
+    bundle = await res.json();
     groups = parseStix(bundle);
     console.log(`[process-data] Parsed ${groups.length} groups from STIX`);
   } else {
@@ -221,7 +222,7 @@ async function main() {
     const jsonPath = join(ROOT, 'enterprise-attack.json');
     if (existsSync(jsonPath)) {
       console.log('[process-data] Loading enterprise-attack.json...');
-      const bundle = JSON.parse(readFileSync(jsonPath, 'utf8'));
+      bundle = JSON.parse(readFileSync(jsonPath, 'utf8'));
       groups = parseStix(bundle);
       console.log(`[process-data] Parsed ${groups.length} groups from STIX`);
     } else {
@@ -233,6 +234,20 @@ async function main() {
 
   const links = computeLinks(groups);
   const { techniques, subtechniques } = buildTechniquesIndex(groups);
+  // Extract the most recent x_mitre_modified year from the STIX bundle
+  let mitreYear = null;
+  if (bundle?.objects) {
+    // Prefer x-mitre-collection modified date; fall back to max modified across all objects
+    const collection = bundle.objects.find(o => o.type === 'x-mitre-collection');
+    const modifiedStr = collection?.modified
+      ?? bundle.objects
+           .map(o => o.modified)
+           .filter(Boolean)
+           .sort()
+           .at(-1);
+    if (modifiedStr) mitreYear = new Date(modifiedStr).getFullYear();
+  }
+
   const metadata = {
     lastUpdated: new Date().toISOString(),
     source,
@@ -240,6 +255,7 @@ async function main() {
     techniqueCount: techniques.length,
     subtechniqueCount: subtechniques.length,
     version: source === 'mitre' ? 'latest (MITRE GitHub)' : 'local',
+    ...(mitreYear ? { mitreYear } : {}),
   };
 
   writeFileSync(join(OUT, 'groups.json'), JSON.stringify(groups));

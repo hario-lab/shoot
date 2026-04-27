@@ -34,7 +34,7 @@ jobs:
       - name: Build
         run: npm run build:pages
         env:
-          VITE_BASE_PATH: /attack-scenario-engine/
+          VITE_BASE_PATH: /shoot/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

@@ -48,7 +48,7 @@ export default function App() {
   const networkGroups = countryFilter === "ALL" ? groups : groups.filter(g => g.country?.code === countryFilter);
 
   return (
-    <div style={{ minHeight: "100vh", background: "#070c12", color: "#c9d1d9", fontFamily: "monospace", display: "flex", flexDirection: "column" }}>
+    <div style={{ height: "100vh", overflow: "hidden", background: "#070c12", color: "#c9d1d9", fontFamily: "monospace", display: "flex", flexDirection: "column" }}>
       {/* Header */}
       <div style={{ background: "#0d1117", borderBottom: "1px solid #1e2d3d", padding: "9px 20px", display: "flex", alignItems: "center", gap: 16, flexShrink: 0 }}>
         <div style={{ color: "#00ff88", fontWeight: "bold", fontSize: 13, letterSpacing: 3 }}>◈ ATT&CK SCENARIO ENGINE</div>

@@ -121,16 +121,14 @@ Write a cinematic but technically accurate narrative from initial access to impa
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <div style={{ width: 180, flexShrink: 0 }}>
+        <div style={{ width: 200, flexShrink: 0 }}>
           <div style={{ color: "#3d5168", fontSize: 9, letterSpacing: 2, marginBottom: 4 }}>PLATFORMS</div>
-          <ResponsiveContainer width="100%" height={80} debounce={50}>
-            <BarChart data={platformData} layout="vertical" margin={{ top: 0, right: 4, bottom: 0, left: 0 }}>
-              <XAxis type="number" hide />
-              <YAxis type="category" dataKey="name" tick={{ fill: "#8b949e", fontSize: 9 }} axisLine={false} tickLine={false} width={80} />
-              <Tooltip content={<CTooltip />} />
-              <Bar dataKey="count" fill="#00d4ff" radius={[0, 2, 2, 0]} background={{ fill: "#0d1117" }} />
-            </BarChart>
-          </ResponsiveContainer>
+          <BarChart width={196} height={Math.max(80, platformData.length * 18)} data={platformData} layout="vertical" margin={{ top: 2, right: 4, bottom: 2, left: 0 }}>
+            <XAxis type="number" hide />
+            <YAxis type="category" dataKey="name" tick={{ fill: "#8b949e", fontSize: 9 }} axisLine={false} tickLine={false} width={85} />
+            <Tooltip content={<CTooltip />} />
+            <Bar dataKey="count" fill="#00d4ff" radius={[0, 2, 2, 0]} background={{ fill: "#0d1117" }} />
+          </BarChart>
         </div>
         <div style={{ width: 100, flexShrink: 0 }}>
           <div style={{ color: "#3d5168", fontSize: 9, letterSpacing: 2, marginBottom: 4 }}>BY NATION</div>

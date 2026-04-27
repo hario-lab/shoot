@@ -3,7 +3,7 @@ import { TACTIC_ORDER, TACTIC_SHORT, TACTIC_CLR } from "../constants.js";
 
 const STORAGE_KEY = "attack_defense_gap_v1";
 const STATES = ["none", "partial", "covered"];
-const STATE_CLR = { none: "#1e2d3d", partial: "#f59e0b", covered: "#00ff88" };
+const STATE_CLR = { none: "#ef4444", partial: "#f59e0b", covered: "#22c55e" };
 const STATE_LABEL = { none: "未対応", partial: "一部対応", covered: "対応済" };
 
 function loadCoverage() {
@@ -116,14 +116,14 @@ export default function DefenseGapMap({ groups, techniques }) {
         </div>
         {/* Coverage summary */}
         <div style={{ display: "flex", gap: 16, marginTop: 10, fontSize: 11 }}>
-          <span style={{ color: "#00ff88" }}>対応済: {coveredCount}</span>
+          <span style={{ color: "#22c55e" }}>対応済: {coveredCount}</span>
           <span style={{ color: "#f59e0b" }}>一部: {partialCount}</span>
-          <span style={{ color: "#4a6378" }}>未対応: {noneCount}</span>
+          <span style={{ color: "#ef4444" }}>未対応: {noneCount}</span>
           <span style={{ color: "#3d5168" }}>合計: {total}</span>
           <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 4 }}>
             <div style={{ flex: 1, height: 6, background: "#1e2d3d", borderRadius: 3, overflow: "hidden" }}>
               <div style={{ height: "100%", display: "flex" }}>
-                <div style={{ width: `${(coveredCount/total)*100}%`, background: "#00ff88" }} />
+                <div style={{ width: `${(coveredCount/total)*100}%`, background: "#22c55e" }} />
                 <div style={{ width: `${(partialCount/total)*100}%`, background: "#f59e0b" }} />
               </div>
             </div>
@@ -148,12 +148,17 @@ export default function DefenseGapMap({ groups, techniques }) {
                       {all.filter(t => (coverage[t.id]||"none") === "covered").length}/{all.length}
                     </div>
                     <div style={{ display: "flex", gap: 2 }}>
-                      {[["none","未対応","#1e2d3d"],["partial","一部","#f59e0b"],["covered","対応済","#00ff88"]].map(([s, label, clr]) => (
-                        <button key={s} onClick={() => setTacticState(tactic, s)}
-                          style={{ flex: 1, background: clr + "22", border: `1px solid ${clr}66`, borderRadius: 2, padding: "1px 0", color: clr, fontSize: 7, cursor: "pointer", fontFamily: "monospace", lineHeight: 1.4 }}>
-                          {label}
-                        </button>
-                      ))}
+                      {[["none","未対応"],["partial","一部"],["covered","対応済"]].map(([s, label]) => {
+                        const clr = STATE_CLR[s];
+                        return (
+                          <button key={s} onClick={() => setTacticState(tactic, s)}
+                            style={{ flex: 1, background: clr + "33", border: `1px solid ${clr}`, borderRadius: 2, padding: "1px 0", color: clr, fontSize: 7, cursor: "pointer", fontFamily: "monospace", lineHeight: 1.4, transition: "all 0.15s" }}
+                            onMouseEnter={e => { e.currentTarget.style.background = clr; e.currentTarget.style.color = "#070c12"; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = clr + "33"; e.currentTarget.style.color = clr; }}>
+                            {label}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -164,9 +169,11 @@ export default function DefenseGapMap({ groups, techniques }) {
                         <div key={tech.id}
                           onClick={() => cycleState(tech.id)}
                           title={`${tech.id}: ${tech.name}\n状態: ${STATE_LABEL[state]}\nクリックで切替`}
-                          style={{ background: clr + "22", border: `1px solid ${clr}44`, borderRadius: 3, padding: "3px 5px", cursor: "pointer", transition: "all 0.1s" }}>
-                          <div style={{ color: "#00d4ff", fontSize: 8 }}>{tech.id}</div>
-                          <div style={{ color: "#6b7280", fontSize: 8, lineHeight: 1.2 }}>
+                          style={{ background: clr + "22", border: `1px solid ${clr}88`, borderRadius: 3, padding: "3px 5px", cursor: "pointer", transition: "background 0.15s, border-color 0.15s, transform 0.1s" }}
+                          onMouseEnter={e => { e.currentTarget.style.background = clr + "55"; e.currentTarget.style.borderColor = clr; e.currentTarget.style.transform = "scale(1.03)"; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = clr + "22"; e.currentTarget.style.borderColor = clr + "88"; e.currentTarget.style.transform = "scale(1)"; }}>
+                          <div style={{ color: clr, fontSize: 8, fontWeight: "bold" }}>{tech.id}</div>
+                          <div style={{ color: "#8b949e", fontSize: 8, lineHeight: 1.2 }}>
                             {tech.name.length > 18 ? tech.name.slice(0, 17) + "…" : tech.name}
                           </div>
                           <div style={{ width: "100%", height: 2, background: "#1e2d3d", borderRadius: 1, marginTop: 2, overflow: "hidden" }}>

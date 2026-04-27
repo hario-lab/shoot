@@ -5,6 +5,30 @@ import { callAnthropicAPI, getStoredApiKey } from "../utils/apiClient.js";
 import StatCard from "../components/StatCard.jsx";
 import TechCard from "../components/TechCard.jsx";
 
+const URL_RE = /https?:\/\/[^\s)>\]]+/g;
+
+function LinkedText({ text }) {
+  if (!text) return null;
+  const parts = [];
+  let last = 0;
+  let m;
+  URL_RE.lastIndex = 0;
+  while ((m = URL_RE.exec(text)) !== null) {
+    if (m.index > last) parts.push(text.slice(last, m.index));
+    parts.push(
+      <a key={m.index} href={m[0]} target="_blank" rel="noreferrer"
+        style={{ color: "#00d4ff", textDecoration: "none" }}
+        onMouseEnter={e => e.currentTarget.style.textDecoration = "underline"}
+        onMouseLeave={e => e.currentTarget.style.textDecoration = "none"}>
+        {m[0]}
+      </a>
+    );
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return <>{parts}</>;
+}
+
 const CTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
@@ -97,12 +121,12 @@ Write a cinematic but technically accurate narrative from initial access to impa
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <div style={{ width: 150, flexShrink: 0 }}>
+        <div style={{ width: 180, flexShrink: 0 }}>
           <div style={{ color: "#3d5168", fontSize: 9, letterSpacing: 2, marginBottom: 4 }}>PLATFORMS</div>
-          <ResponsiveContainer width="100%" height={80}>
-            <BarChart data={platformData} layout="vertical" margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+          <ResponsiveContainer width="100%" height={80} debounce={50}>
+            <BarChart data={platformData} layout="vertical" margin={{ top: 0, right: 4, bottom: 0, left: 0 }}>
               <XAxis type="number" hide />
-              <YAxis type="category" dataKey="name" tick={{ fill: "#8b949e", fontSize: 9 }} axisLine={false} tickLine={false} width={60} />
+              <YAxis type="category" dataKey="name" tick={{ fill: "#8b949e", fontSize: 9 }} axisLine={false} tickLine={false} width={80} />
               <Tooltip content={<CTooltip />} />
               <Bar dataKey="count" fill="#00d4ff" radius={[0, 2, 2, 0]} background={{ fill: "#0d1117" }} />
             </BarChart>
@@ -129,7 +153,12 @@ Write a cinematic but technically accurate narrative from initial access to impa
           <div style={{ flex: 1 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontSize: 16 }}>{group.country?.flag}</span>
-              <span style={{ color: "#00ff88", fontWeight: "bold", fontSize: 15 }}>{group.name}</span>
+              <a href={`https://attack.mitre.org/groups/${group.id}/`} target="_blank" rel="noreferrer"
+                style={{ color: "#00ff88", fontWeight: "bold", fontSize: 15, textDecoration: "none" }}
+                onMouseEnter={e => e.currentTarget.style.textDecoration = "underline"}
+                onMouseLeave={e => e.currentTarget.style.textDecoration = "none"}>
+                {group.name}
+              </a>
               <span style={{ color: "#3d5168", fontSize: 11 }}>{group.id}</span>
             </div>
             {group.aliases?.length > 1 && (
@@ -137,7 +166,9 @@ Write a cinematic but technically accurate narrative from initial access to impa
                 aka: {group.aliases.filter(a => a !== group.name).slice(0, 4).join(" · ")}
               </div>
             )}
-            <div style={{ color: "#8b949e", fontSize: 11, marginTop: 5, lineHeight: 1.5 }}>{group.description}</div>
+            <div style={{ color: "#8b949e", fontSize: 11, marginTop: 5, lineHeight: 1.5 }}>
+              <LinkedText text={group.description} />
+            </div>
           </div>
         </div>
       </div>

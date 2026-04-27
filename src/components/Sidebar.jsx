@@ -26,7 +26,7 @@ export default function Sidebar({ groups, selId, onSelect, search, onSearch, cou
   });
 
   return (
-    <div style={{ width: 230, background: "#0d1117", borderRight: "1px solid #1e2d3d", display: "flex", flexDirection: "column", flexShrink: 0, overflow: "hidden" }}>
+    <div style={{ width: 230, height: "100vh", background: "#0d1117", borderRight: "1px solid #1e2d3d", display: "flex", flexDirection: "column", flexShrink: 0, overflowY: "auto" }}>
       <div style={{ padding: "10px 10px 6px", borderBottom: "1px solid #1e2d3d", flexShrink: 0 }}>
         <div style={{ color: "#3d5168", fontSize: 9, letterSpacing: 2, marginBottom: 6 }}>FILTER BY ORIGIN</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>

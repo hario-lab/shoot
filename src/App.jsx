@@ -206,6 +206,7 @@ export default function App() {
       <div style={{ background: "#0d1117", borderTop: "1px solid #1e2d3d", padding: "6px 20px", flexShrink: 0, textAlign: "center", fontSize: 10, color: "#3d5168" }}>
         Powered by MITRE ATT&amp;CK® &nbsp;|&nbsp; © 2025 The MITRE Corporation. This work is reproduced and distributed with the permission of The MITRE Corporation. &nbsp;|&nbsp;
         <a href="https://attack.mitre.org/resources/legal-and-branding/terms-of-use/" target="_blank" rel="noreferrer" style={{ color: "#3d5168", textDecoration: "underline" }}>ATT&amp;CK Terms of Use</a>
+        &nbsp;|&nbsp; © 2025 <a href="https://hariolab.net" target="_blank" rel="noreferrer" style={{ color: "#3d5168", textDecoration: "underline" }}>hario-lab</a>
       </div>
 
       {/* Data update modal */}

@@ -1,9 +1,8 @@
 # ATT&CK Scenario Engine
 
-MITRE ATT&CK® データを使用した脅威インテリジェンス可視化ツール。
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19808360.svg)](https://doi.org/10.5281/zenodo.19808360)
 
-## DOI
-https://doi.org/10.5281/zenodo.19808360
+MITRE ATT&CK® データを使用した脅威インテリジェンス可視化ツール。
 
 ## 機能
 
@@ -47,7 +46,7 @@ APIキーは [console.anthropic.com](https://console.anthropic.com) で取得で
 npm run build
 
 # GitHub Pages へのデプロイ用（リポジトリ名をbase pathに設定）
-VITE_BASE_PATH=/attack-engine/ npm run build
+VITE_BASE_PATH=/attack-scenario-engine/ npm run build:pages
 ```
 
 生成される `dist/index.html` は全アセットをインライン化した単一ファイルで、`file://` でも直接開けます。
@@ -64,7 +63,7 @@ npm run process-data
 npm run update-data
 ```
 
-アプリ内の「↻ データを更新」ボタンからも更新できます（開発サーバー起動時のみ）。
+アプリ内の「↻ Update Data」ボタンからも更新できます（開発サーバー起動時のみ）。
 
 ## クレジット
 
@@ -75,6 +74,10 @@ npm run update-data
 - ATT&CK®: https://attack.mitre.org
 - Terms of Use: https://attack.mitre.org/resources/legal-and-branding/terms-of-use/
 - Data Source: https://github.com/mitre/cti
+
+## Author
+
+[hario-lab](https://hariolab.net)
 
 ## ライセンス
 

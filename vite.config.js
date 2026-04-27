@@ -15,16 +15,6 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       viteSingleFile(),
-      // Remove type="module" so dist/index.html works when opened via file://
-      {
-        name: 'strip-module-type',
-        enforce: 'post',
-        transformIndexHtml: {
-          order: 'post',
-          handler: html =>
-            html.replace(/(<script\b)[^>]*\btype="module"\b[^>]*(>)/g, '$1$2'),
-        },
-      },
       {
         name: 'attack-api',
         configureServer(server) {

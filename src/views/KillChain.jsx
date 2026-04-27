@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { TACTIC_ORDER, TACTIC_SHORT, TACTIC_CLR, COUNTRY_META } from "../constants.js";
+import { TACTIC_ORDER, TACTIC_SHORT, TACTIC_CLR, TACTIC_INFO, COUNTRY_META } from "../constants.js";
 import { callAnthropicAPI, getStoredApiKey } from "../utils/apiClient.js";
 import StatCard from "../components/StatCard.jsx";
 import TechCard from "../components/TechCard.jsx";
@@ -38,9 +38,10 @@ const CTooltip = ({ active, payload, label }) => {
   );
 };
 
-export default function KillChain({ group, groups, onSelectGroup }) {
-  const [selTech, setSelTech] = useState(null);
-  const [selSub, setSelSub]   = useState(null);
+export default function KillChain({ group, groups, onSelectGroup, playClick = () => {} }) {
+  const [selTech, setSelTech]   = useState(null);
+  const [selSub, setSelSub]     = useState(null);
+  const [selTactic, setSelTactic] = useState(null);
   const [scenario, setScenario] = useState("");
   const [loading, setLoading]   = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
@@ -66,19 +67,30 @@ export default function KillChain({ group, groups, onSelectGroup }) {
   ).map(([code, count]) => ({ code, count, color: COUNTRY_META[code]?.color || "#6b7280" }));
 
   const handleTechClick = tech => {
+    playClick();
     const isNew = selTech?.id !== tech.id;
     setSelTech(isNew ? tech : null);
+    setSelTactic(null);
     setSelSub(null);
     if (isNew) setPanelOpen(true);
   };
-  const handleSubClick = sub => { setSelSub(selSub?.id === sub.id ? null : sub); };
-  const closePanel = () => { setSelTech(null); setSelSub(null); setPanelOpen(false); setScenario(""); };
+  const handleTacticClick = tactic => {
+    playClick();
+    setSelTactic(tactic);
+    setSelTech(null);
+    setSelSub(null);
+    setPanelOpen(true);
+    setScenario("");
+  };
+  const handleSubClick = sub => { playClick(); setSelSub(selSub?.id === sub.id ? null : sub); };
+  const closePanel = () => { setSelTech(null); setSelSub(null); setSelTactic(null); setPanelOpen(false); setScenario(""); };
 
   const detailItem  = selSub || selTech;
   const detailColor = selTech ? (TACTIC_CLR[selTech.tactics?.[0]] || "#00d4ff") : "#00d4ff";
 
   const generate = async () => {
     if (!group || loading) return;
+    playClick();
     setLoading(true);
     setScenario("");
     const techList = group.techniques.map(t =>
@@ -145,34 +157,17 @@ Write a cinematic but technically accurate narrative from initial access to impa
         </div>
       </div>
 
-      {/* Group header */}
-      <div style={{ background: "#0d1117", borderBottom: "1px solid #1e2d3d", padding: "10px 16px", flexShrink: 0 }}>
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 16 }}>{group.country?.flag}</span>
-              <a href={`https://attack.mitre.org/groups/${group.id}/`} target="_blank" rel="noreferrer"
-                style={{ color: "#00ff88", fontWeight: "bold", fontSize: 15, textDecoration: "none" }}
-                onMouseEnter={e => e.currentTarget.style.textDecoration = "underline"}
-                onMouseLeave={e => e.currentTarget.style.textDecoration = "none"}>
-                {group.name}
-              </a>
-              <span style={{ color: "#3d5168", fontSize: 11 }}>{group.id}</span>
-            </div>
-            {group.aliases?.length > 1 && (
-              <div style={{ color: "#4a6378", fontSize: 10, marginTop: 2 }}>
-                aka: {group.aliases.filter(a => a !== group.name).slice(0, 4).join(" · ")}
-              </div>
-            )}
-            <div style={{ color: "#8b949e", fontSize: 11, marginTop: 5, lineHeight: 1.5 }}>
-              <LinkedText text={group.description} />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ color: "#3d5168", fontSize: 9, padding: "5px 16px", background: "#070c12", borderBottom: "1px solid #1e2d3d", flexShrink: 0, letterSpacing: 1 }}>
-        ▼ ボタンでサブテクニックを展開 · テクニックをクリックで右パネルに詳細表示
+      {/* Group header — シンプル1行 */}
+      <div style={{ background: "#0d1117", borderBottom: "1px solid #1e2d3d", padding: "6px 16px", flexShrink: 0, display: "flex", alignItems: "center", gap: 8 }}>
+        <span style={{ fontSize: 14 }}>{group.country?.flag}</span>
+        <a href={`https://attack.mitre.org/groups/${group.id}/`} target="_blank" rel="noreferrer"
+          style={{ color: "#00ff88", fontWeight: "bold", fontSize: 14, textDecoration: "none" }}
+          onMouseEnter={e => e.currentTarget.style.textDecoration = "underline"}
+          onMouseLeave={e => e.currentTarget.style.textDecoration = "none"}>
+          {group.name}
+        </a>
+        <span style={{ color: "#3d5168", fontSize: 11 }}>{group.id}</span>
+        <span style={{ color: "#3d5168", fontSize: 9, marginLeft: 8 }}>▼ サブ展開 · タクティクス/テクニック をクリックで詳細表示</span>
       </div>
 
       {/* Main area: kill chain + side panel */}
@@ -182,7 +177,10 @@ Write a cinematic but technically accurate narrative from initial access to impa
           <div style={{ display: "flex", gap: 8, minWidth: "max-content" }}>
             {usedTactics.map(tactic => (
               <div key={tactic} style={{ width: 155, flexShrink: 0 }}>
-                <div style={{ background: TACTIC_CLR[tactic] + "22", border: `1px solid ${TACTIC_CLR[tactic]}55`, borderRadius: "4px 4px 0 0", padding: "4px 6px", textAlign: "center", color: TACTIC_CLR[tactic], fontSize: 9, fontWeight: "bold", letterSpacing: 1 }}>
+                <div onClick={() => handleTacticClick(tactic)}
+                  style={{ background: selTactic === tactic ? TACTIC_CLR[tactic] + "44" : TACTIC_CLR[tactic] + "22", border: `1px solid ${selTactic === tactic ? TACTIC_CLR[tactic] : TACTIC_CLR[tactic] + "55"}`, borderRadius: "4px 4px 0 0", padding: "4px 6px", textAlign: "center", color: TACTIC_CLR[tactic], fontSize: 9, fontWeight: "bold", letterSpacing: 1, cursor: "pointer", transition: "all 0.15s" }}
+                  onMouseEnter={e => { if (selTactic !== tactic) e.currentTarget.style.background = TACTIC_CLR[tactic] + "33"; }}
+                  onMouseLeave={e => { if (selTactic !== tactic) e.currentTarget.style.background = TACTIC_CLR[tactic] + "22"; }}>
                   {TACTIC_SHORT[tactic]} <span style={{ opacity: 0.6 }}>({byTactic[tactic].length})</span>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 3, marginTop: 3 }}>
@@ -205,11 +203,17 @@ Write a cinematic but technically accurate narrative from initial access to impa
             {/* Panel header */}
             <div style={{ padding: "10px 14px", borderBottom: "1px solid #1e2d3d", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
               <div>
-                <span style={{ color: "#00d4ff", fontWeight: "bold", fontSize: 13 }}>
-                  {detailItem?.id}
-                </span>
-                {selSub && <span style={{ color: "#3d5168", fontSize: 11, marginLeft: 6 }}>← {selTech?.id}</span>}
-                {selSub && <span style={{ fontSize: 9, color: "#a855f7", background: "#a855f722", padding: "2px 6px", borderRadius: 3, border: "1px solid #a855f755", marginLeft: 6 }}>SUBTECHNIQUE</span>}
+                {selTactic ? (
+                  <span style={{ color: TACTIC_CLR[selTactic], fontWeight: "bold", fontSize: 13 }}>
+                    {TACTIC_INFO[selTactic]?.id}
+                  </span>
+                ) : (
+                  <>
+                    <span style={{ color: "#00d4ff", fontWeight: "bold", fontSize: 13 }}>{detailItem?.id}</span>
+                    {selSub && <span style={{ color: "#3d5168", fontSize: 11, marginLeft: 6 }}>← {selTech?.id}</span>}
+                    {selSub && <span style={{ fontSize: 9, color: "#a855f7", background: "#a855f722", padding: "2px 6px", borderRadius: 3, border: "1px solid #a855f755", marginLeft: 6 }}>SUBTECHNIQUE</span>}
+                  </>
+                )}
               </div>
               <button onClick={closePanel}
                 style={{ background: "none", border: "none", color: "#3d5168", cursor: "pointer", fontSize: 14 }}>✕</button>
@@ -217,7 +221,42 @@ Write a cinematic but technically accurate narrative from initial access to impa
 
             {/* Panel content (scrollable) */}
             <div style={{ flex: 1, overflowY: "auto", padding: "14px" }}>
-              {detailItem && (
+              {/* Tactic パネル */}
+              {selTactic && TACTIC_INFO[selTactic] && (() => {
+                const info = TACTIC_INFO[selTactic];
+                const clr  = TACTIC_CLR[selTactic];
+                return (
+                  <div>
+                    <div style={{ color: clr, fontWeight: "bold", fontSize: 16, marginBottom: 4 }}>{info.name}</div>
+                    <div style={{ marginBottom: 10 }}>
+                      <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 3, background: clr + "22", color: clr, border: `1px solid ${clr}55` }}>{info.id}</span>
+                    </div>
+                    <a href={`https://attack.mitre.org/tactics/${info.id}/`} target="_blank" rel="noreferrer"
+                      style={{ color: "#00d4ff", fontSize: 11, textDecoration: "none", display: "block", marginBottom: 14 }}
+                      onMouseEnter={e => e.currentTarget.style.textDecoration = "underline"}
+                      onMouseLeave={e => e.currentTarget.style.textDecoration = "none"}>
+                      ↗ attack.mitre.org/tactics/{info.id}/
+                    </a>
+                    <div style={{ color: "#8b949e", fontSize: 12, lineHeight: 1.8, borderLeft: `3px solid ${clr}66`, paddingLeft: 12 }}>
+                      {info.desc}
+                    </div>
+                    <div style={{ marginTop: 16, borderTop: "1px solid #1e2d3d", paddingTop: 12 }}>
+                      <div style={{ color: "#3d5168", fontSize: 9, letterSpacing: 1, marginBottom: 6 }}>このグループのテクニック ({byTactic[selTactic]?.length})</div>
+                      {byTactic[selTactic]?.map(t => (
+                        <div key={t.id} onClick={() => handleTechClick(t)}
+                          style={{ background: "#070c12", border: "1px solid #1e2d3d", borderRadius: 3, padding: "4px 8px", marginBottom: 3, cursor: "pointer" }}
+                          onMouseEnter={e => e.currentTarget.style.borderColor = clr + "88"}
+                          onMouseLeave={e => e.currentTarget.style.borderColor = "#1e2d3d"}>
+                          <span style={{ color: clr, fontSize: 10 }}>{t.id}</span>
+                          <span style={{ color: "#8b949e", fontSize: 10, marginLeft: 6 }}>{t.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {detailItem && !selTactic && (
                 <>
                   <div style={{ color: "#c9d1d9", fontWeight: "bold", fontSize: 14, marginBottom: 6 }}>{detailItem.name}</div>
 
@@ -260,7 +299,7 @@ Write a cinematic but technically accurate narrative from initial access to impa
                 </>
               )}
 
-              {/* Divider before generate */}
+              {/* Divider before generate (technique/sub selected only) */}
               <div style={{ borderTop: "1px solid #1e2d3d", margin: "10px 0" }} />
 
               {/* Generate scenario button */}

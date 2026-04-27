@@ -2,7 +2,7 @@ import { useRef, useEffect } from "react";
 import * as d3 from "d3";
 import { COUNTRY_META } from "../constants.js";
 
-export default function NetworkGraph({ groups, links, onSelectGroup, selId, countryFilter }) {
+export default function NetworkGraph({ groups, links, onSelectGroup, selId, playClick = () => {} }) {
   const svgRef = useRef(null);
 
   useEffect(() => {
@@ -14,12 +14,21 @@ export default function NetworkGraph({ groups, links, onSelectGroup, selId, coun
     const svg = d3.select(el);
     svg.selectAll("*").remove();
 
-    const visGroups = countryFilter === "ALL" ? groups : groups.filter(g => g.country.code === countryFilter);
-    const visIds = new Set(visGroups.map(g => g.id));
-    const visLinks = links.filter(l => visIds.has(l.source) && visIds.has(l.target) && l.value >= 7);
-
-    const nodes = visGroups.map(g => ({ ...g }));
-    const edges = visLinks.map(l => ({ ...l }));
+    // groups は App.jsx 側でフィルター済み。D3 の in-place 変更を防ぐためディープコピー
+    const nodes = groups.map(g => ({ ...g }));
+    const nodeIds = new Set(nodes.map(n => n.id));
+    // source/target が D3 に変換済みオブジェクトの場合も文字列IDに正規化
+    const edges = links
+      .filter(l => {
+        const src = typeof l.source === "object" ? l.source.id : l.source;
+        const tgt = typeof l.target === "object" ? l.target.id : l.target;
+        return nodeIds.has(src) && nodeIds.has(tgt) && l.value >= 7;
+      })
+      .map(l => ({
+        source: typeof l.source === "object" ? l.source.id : l.source,
+        target: typeof l.target === "object" ? l.target.id : l.target,
+        value: l.value,
+      }));
 
     const zoom = d3.zoom().scaleExtent([0.2, 4]).on("zoom", e => g.attr("transform", e.transform));
     svg.call(zoom);
@@ -46,7 +55,7 @@ export default function NetworkGraph({ groups, links, onSelectGroup, selId, coun
         .on("start", (e, d) => { if (!e.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
         .on("drag",  (e, d) => { d.fx = e.x; d.fy = e.y; })
         .on("end",   (e, d) => { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }))
-      .on("click", (_, d) => onSelectGroup(d.id));
+      .on("click", (_, d) => { playClick(); onSelectGroup(d.id); });
 
     node.append("circle")
       .attr("r", d => 8 + (d.techniques?.length || 0) / 6)
@@ -72,7 +81,7 @@ export default function NetworkGraph({ groups, links, onSelectGroup, selId, coun
     });
 
     return () => sim.stop();
-  }, [groups, links, selId, countryFilter]);
+  }, [groups, links, selId]);
 
   return <svg ref={svgRef} style={{ width: "100%", height: "100%" }} />;
 }

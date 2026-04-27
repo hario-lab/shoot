@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { COUNTRY_META, TACTIC_ORDER, TACTIC_SHORT } from "./constants.js";
 import { useAttackData } from "./hooks/useAttackData.js";
+import { useSound } from "./hooks/useSound.js";
+import SoundControl from "./components/SoundControl.jsx";
 import Sidebar from "./components/Sidebar.jsx";
 import NetworkGraph from "./components/NetworkGraph.jsx";
 import DataUpdateModal from "./components/DataUpdateModal.jsx";
@@ -21,10 +23,11 @@ const TABS = [
 
 export default function App() {
   const { groups, links, techniques, metadata, loading, error, isStale, triggerUpdate } = useAttackData();
+  const { soundType, setSoundType, playClick, SOUND_TYPES } = useSound();
   const [selId, setSelId]             = useState(null);
   const [view, setView]               = useState("killchain");
   const [search, setSearch]           = useState("");
-  const [countryFilter, setCountryFilter] = useState("ALL");
+  const [selectedCountries, setSelectedCountries] = useState(new Set());
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [updateLoading, setUpdateLoading]   = useState(false);
   const [showSettings, setShowSettings]     = useState(false);
@@ -44,8 +47,17 @@ export default function App() {
 
   const fmtDate = ts => ts ? new Date(ts).toLocaleDateString("ja-JP", { year:"numeric", month:"2-digit", day:"2-digit" }) : null;
 
-  // Network view needs links filtered by countryFilter
-  const networkGroups = countryFilter === "ALL" ? groups : groups.filter(g => g.country?.code === countryFilter);
+  const toggleCountry = code => {
+    if (code === "ALL") { setSelectedCountries(new Set()); return; }
+    setSelectedCountries(prev => {
+      const next = new Set(prev);
+      next.has(code) ? next.delete(code) : next.add(code);
+      return next;
+    });
+  };
+
+  // Network view needs links filtered by selectedCountries
+  const networkGroups = selectedCountries.size === 0 ? groups : groups.filter(g => selectedCountries.has(g.country?.code));
 
   return (
     <div style={{ height: "100vh", overflow: "hidden", background: "#070c12", color: "#c9d1d9", fontFamily: "monospace", display: "flex", flexDirection: "column" }}>
@@ -74,24 +86,31 @@ export default function App() {
         {/* Tabs */}
         <div style={{ marginLeft: "auto", display: "flex", gap: 4, flexWrap: "wrap" }}>
           {TABS.map(([v, label]) => (
-            <button key={v} onClick={() => setView(v)}
+            <button key={v} onClick={() => { playClick(); setView(v); }}
               style={{ background: view === v ? "#00ff8822" : "transparent", border: `1px solid ${view === v ? "#00ff88" : "#1e2d3d"}`, borderRadius: 4, padding: "4px 12px", fontSize: 11, color: view === v ? "#00ff88" : "#4a6378", cursor: "pointer", fontFamily: "monospace", letterSpacing: 1, transition: "all 0.15s" }}>
               {label}
             </button>
           ))}
           {/* Data update button */}
-          <button onClick={() => setShowUpdateModal(true)}
+          <button onClick={() => { playClick(); setShowUpdateModal(true); }}
             style={{ background: isStale ? "#f59e0b22" : "transparent", border: `1px solid ${isStale ? "#f59e0b" : "#1e2d3d"}`, borderRadius: 4, padding: "4px 12px", fontSize: 11, color: isStale ? "#f59e0b" : "#4a6378", cursor: "pointer", fontFamily: "monospace", letterSpacing: 1 }}>
             ↻ Update Data
           </button>
-          <button onClick={() => setShowSettings(true)}
+          <button onClick={() => { playClick(); setShowSettings(true); }}
             style={{ background: "transparent", border: "1px solid #1e2d3d", borderRadius: 4, padding: "4px 12px", fontSize: 11, color: "#4a6378", cursor: "pointer", fontFamily: "monospace", letterSpacing: 1 }}>
             ⚙ Settings
           </button>
-          <button onClick={() => setShowAbout(true)}
+          <button onClick={() => { playClick(); setShowAbout(true); }}
             style={{ background: "transparent", border: "1px solid #1e2d3d", borderRadius: 4, padding: "4px 12px", fontSize: 11, color: "#4a6378", cursor: "pointer", fontFamily: "monospace", letterSpacing: 1 }}>
             ⓘ About
           </button>
+          {/* Sound selector */}
+          <SoundControl
+            soundType={soundType}
+            setSoundType={setSoundType}
+            playClick={playClick}
+            SOUND_TYPES={SOUND_TYPES}
+          />
         </div>
       </div>
 
@@ -120,15 +139,16 @@ export default function App() {
               onSelect={handleSelect}
               search={search}
               onSearch={setSearch}
-              countryFilter={countryFilter}
-              onCountryFilter={setCountryFilter}
+              selectedCountries={selectedCountries}
+              onCountryToggle={toggleCountry}
+              playClick={playClick}
             />
           )}
 
           {/* Content area */}
           <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {view === "killchain" && (
-              <KillChain group={group} groups={groups} onSelectGroup={handleSelect} />
+              <KillChain group={group} groups={groups} onSelectGroup={handleSelect} playClick={playClick} />
             )}
 
             {view === "network" && (
@@ -180,7 +200,7 @@ export default function App() {
                     links={links}
                     onSelectGroup={handleSelect}
                     selId={effectiveSelId}
-                    countryFilter={countryFilter}
+                    playClick={playClick}
                   />
                 </div>
               </div>

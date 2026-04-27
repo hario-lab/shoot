@@ -4,14 +4,14 @@ import { COUNTRY_META } from "../constants.js";
 const SORT_MODES = ["alpha", "ttp", "country"];
 const SORT_LABELS = { alpha: "A→Z", ttp: "TTP数", country: "国別" };
 
-export default function Sidebar({ groups, selId, onSelect, search, onSearch, countryFilter, onCountryFilter }) {
+export default function Sidebar({ groups, selId, onSelect, search, onSearch, selectedCountries, onCountryToggle, playClick = () => {} }) {
   const [sortMode, setSortMode] = useState("alpha");
 
   const avg = groups.length ? Math.round(groups.reduce((s, g) => s + g.techniques.length, 0) / groups.length) : 0;
 
   const filtered = groups.filter(g => {
     const ms = !search || g.name.toLowerCase().includes(search.toLowerCase()) || g.id.includes(search.toUpperCase());
-    const mc = countryFilter === "ALL" || g.country?.code === countryFilter;
+    const mc = selectedCountries.size === 0 || selectedCountries.has(g.country?.code);
     return ms && mc;
   });
 
@@ -25,18 +25,35 @@ export default function Sidebar({ groups, selId, onSelect, search, onSearch, cou
     return a.name.localeCompare(b.name);
   });
 
+  const isAll = selectedCountries.size === 0;
+
   return (
     <div style={{ width: 230, height: "100vh", background: "#0d1117", borderRight: "1px solid #1e2d3d", display: "flex", flexDirection: "column", flexShrink: 0, overflowY: "auto" }}>
       <div style={{ padding: "10px 10px 6px", borderBottom: "1px solid #1e2d3d", flexShrink: 0 }}>
         <div style={{ color: "#3d5168", fontSize: 9, letterSpacing: 2, marginBottom: 6 }}>FILTER BY ORIGIN</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-          {[["ALL", "🌐", "#00ff88"], ...Object.entries(COUNTRY_META).map(([c, m]) => [c, m.flag, m.color])].map(([code, flag, color]) => (
-            <button key={code} onClick={() => onCountryFilter(code)}
-              style={{ background: countryFilter === code ? color + "33" : "transparent", border: `1px solid ${countryFilter === code ? color : "#1e2d3d"}`, borderRadius: 3, padding: "3px 7px", cursor: "pointer", fontSize: 11, color: countryFilter === code ? color : "#4a6378", fontFamily: "monospace", transition: "all 0.15s" }}>
-              {flag} {code}
-            </button>
-          ))}
+          {/* ALL ボタン */}
+          <button onClick={() => { playClick(); onCountryToggle("ALL"); }}
+            style={{ background: isAll ? "#00ff8833" : "transparent", border: `1px solid ${isAll ? "#00ff88" : "#1e2d3d"}`, borderRadius: 3, padding: "3px 7px", cursor: "pointer", fontSize: 11, color: isAll ? "#00ff88" : "#4a6378", fontFamily: "monospace", transition: "all 0.15s" }}>
+            🌐 ALL
+          </button>
+          {/* 各国トグルボタン */}
+          {Object.entries(COUNTRY_META).map(([code, m]) => {
+            const active = selectedCountries.has(code);
+            return (
+              <button key={code} onClick={() => { playClick(); onCountryToggle(code); }}
+                style={{ background: active ? m.color + "33" : "transparent", border: `1px solid ${active ? m.color : "#1e2d3d"}`, borderRadius: 3, padding: "3px 7px", cursor: "pointer", fontSize: 11, color: active ? m.color : "#4a6378", fontFamily: "monospace", transition: "all 0.15s", fontWeight: active ? "bold" : "normal" }}>
+                {m.flag} {code}
+              </button>
+            );
+          })}
         </div>
+        {/* 選択中の国の組み合わせ表示 */}
+        {selectedCountries.size > 1 && (
+          <div style={{ marginTop: 5, fontSize: 9, color: "#00d4ff", letterSpacing: 1 }}>
+            {[...selectedCountries].map(c => COUNTRY_META[c]?.flag).join(" ")} {selectedCountries.size}カ国選択中
+          </div>
+        )}
       </div>
 
       <div style={{ padding: "8px 10px", borderBottom: "1px solid #1e2d3d", flexShrink: 0 }}>
@@ -58,7 +75,7 @@ export default function Sidebar({ groups, selId, onSelect, search, onSearch, cou
 
       <div style={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
         {sorted.map(g => (
-          <div key={g.id} onClick={() => onSelect(g.id)}
+          <div key={g.id} onClick={() => { playClick(); onSelect(g.id); }}
             style={{ padding: "7px 12px", cursor: "pointer", borderLeft: `2px solid ${g.id === selId ? "#00ff88" : "transparent"}`, background: g.id === selId ? "#001a0d" : "transparent", transition: "all 0.1s" }}
             onMouseEnter={e => { if (g.id !== selId) e.currentTarget.style.background = "#0f1923"; }}
             onMouseLeave={e => { if (g.id !== selId) e.currentTarget.style.background = "transparent"; }}>

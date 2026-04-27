@@ -1,9 +1,9 @@
 {
-  "lastUpdated": "2026-04-26T23:00:41.600Z",
+  "lastUpdated": "2026-04-27T22:48:11.856Z",
   "source": "mitre",
   "groupCount": 160,
   "techniqueCount": 181,
   "subtechniqueCount": 292,
   "version": "latest (MITRE GitHub)",
-  "mitreYear": 2025
+  "mitreYear": 2024
 }

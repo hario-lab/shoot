@@ -1,13 +1,13 @@
 export const TACTIC_ORDER = [
   "reconnaissance","resource-development","initial-access","execution",
-  "persistence","privilege-escalation","defense-evasion","credential-access",
+  "persistence","privilege-escalation","stealth","defense-impairment","credential-access",
   "discovery","lateral-movement","collection","command-and-control","exfiltration","impact",
 ];
 
 export const TACTIC_SHORT = {
   "reconnaissance":"RECON","resource-development":"RES DEV","initial-access":"INIT ACC",
   "execution":"EXEC","persistence":"PERSIST","privilege-escalation":"PRIV ESC",
-  "defense-evasion":"DEF EVA","credential-access":"CRED ACC","discovery":"DISCOV",
+  "stealth":"STEALTH","defense-impairment":"DEF IMP","credential-access":"CRED ACC","discovery":"DISCOV",
   "lateral-movement":"LAT MOV","collection":"COLLECT","command-and-control":"C2",
   "exfiltration":"EXFIL","impact":"IMPACT",
 };
@@ -15,7 +15,7 @@ export const TACTIC_SHORT = {
 export const TACTIC_CLR = {
   "reconnaissance":"#3b82f6","resource-development":"#6366f1","initial-access":"#ef4444",
   "execution":"#f97316","persistence":"#f59e0b","privilege-escalation":"#eab308",
-  "defense-evasion":"#14b8a6","credential-access":"#a855f7","discovery":"#0ea5e9",
+  "stealth":"#14b8a6","defense-impairment":"#0f766e","credential-access":"#a855f7","discovery":"#0ea5e9",
   "lateral-movement":"#06b6d4","collection":"#22c55e","command-and-control":"#8b5cf6",
   "exfiltration":"#ec4899","impact":"#f43f5e",
 };
@@ -27,7 +27,8 @@ export const TACTIC_INFO = {
   "execution":            { id:"TA0002", name:"Execution",              desc:"The adversary is trying to run malicious code." },
   "persistence":          { id:"TA0003", name:"Persistence",            desc:"The adversary is trying to maintain their foothold." },
   "privilege-escalation": { id:"TA0004", name:"Privilege Escalation",   desc:"The adversary is trying to gain higher-level permissions." },
-  "defense-evasion":      { id:"TA0005", name:"Defense Evasion",        desc:"The adversary is trying to avoid being detected." },
+  "stealth":              { id:"TA0005", name:"Stealth",                desc:"The adversary is trying to hide and conceal their actions, appearing as normal behavior." },
+  "defense-impairment":  { id:"TA0112", name:"Defense Impairment",     desc:"The adversary is trying to break security mechanisms, pipelines, and tooling so defenders can't see or trust what's happening." },
   "credential-access":    { id:"TA0006", name:"Credential Access",      desc:"The adversary is trying to steal account names and passwords." },
   "discovery":            { id:"TA0007", name:"Discovery",              desc:"The adversary is trying to figure out your environment." },
   "lateral-movement":     { id:"TA0008", name:"Lateral Movement",       desc:"The adversary is trying to move through your environment." },

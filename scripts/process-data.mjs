@@ -14,7 +14,7 @@ const ROOT = join(__dir, '..');
 const OUT = join(ROOT, 'public', 'data');
 
 const MITRE_URL =
-  'https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/enterprise-attack/enterprise-attack-16.1.json';
+  'https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/enterprise-attack/enterprise-attack-19.0.json';
 
 // Country keywords → code mapping
 const COUNTRY_KEYWORDS = [

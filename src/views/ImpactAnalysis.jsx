@@ -26,7 +26,7 @@ export default function ImpactAnalysis({ groups, onSelectGroup, onSwitchToKillCh
       const tacticSet = new Set(matching.flatMap(t => t.tactics));
       const techCount = matching.length;
       const tacticCoverage = tacticSet.size;
-      const riskScore = Math.round(techCount * (tacticCoverage / 14) * 10) / 10;
+      const riskScore = Math.round(techCount * (tacticCoverage / TACTIC_ORDER.length) * 10) / 10;
       const tacticPhases = TACTIC_ORDER.filter(t => tacticSet.has(t));
       return { ...g, matching, techCount, tacticCoverage, riskScore, tacticPhases };
     })
@@ -110,8 +110,8 @@ export default function ImpactAnalysis({ groups, onSelectGroup, onSwitchToKillCh
 
                   <div style={{ display: "flex", gap: 16, fontSize: 11, color: "#4a6378", marginBottom: 8 }}>
                     <span>テクニック: <span style={{ color: "#00ff88" }}>{g.techCount}</span></span>
-                    <span>戦術カバレッジ: <span style={{ color: "#00d4ff" }}>{g.tacticCoverage}/14</span></span>
-                    <span>スコア = {g.techCount} × {g.tacticCoverage}/14</span>
+                    <span>戦術カバレッジ: <span style={{ color: "#00d4ff" }}>{g.tacticCoverage}/{TACTIC_ORDER.length}</span></span>
+                    <span>スコア = {g.techCount} × {g.tacticCoverage}/{TACTIC_ORDER.length}</span>
                   </div>
 
                   {/* Tactic phases covered */}
@@ -131,7 +131,7 @@ export default function ImpactAnalysis({ groups, onSelectGroup, onSwitchToKillCh
 
       {/* Footer info */}
       <div style={{ padding: "8px 20px", borderTop: "1px solid #1e2d3d", background: "#0d1117", flexShrink: 0, color: "#3d5168", fontSize: 10 }}>
-        リスクスコア = テクニック数 × (戦術カバレッジ / 14) · グループをクリックでKILL CHAINビューに遷移
+        リスクスコア = テクニック数 × (戦術カバレッジ / {TACTIC_ORDER.length}) · グループをクリックでKILL CHAINビューに遷移
       </div>
     </div>
   );

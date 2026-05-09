@@ -1,5 +1,8 @@
 import { useState, useCallback } from "react";
 
+export const MITRE_STIX_URL =
+  'https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/enterprise-attack/enterprise-attack.json';
+
 // Bundled at build time — dist/index.html works offline without a server
 import defaultGroups    from "../../public/data/groups.json";
 import defaultLinks     from "../../public/data/relations.json";

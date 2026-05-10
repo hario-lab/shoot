@@ -4,7 +4,7 @@ import { COUNTRY_META } from "../constants.js";
 const SORT_MODES = ["alpha", "ttp", "country"];
 const SORT_LABELS = { alpha: "A→Z", ttp: "TTP数", country: "国別" };
 
-export default function Sidebar({ groups, selId, onSelect, search, onSearch, selectedCountries, onCountryToggle, playClick = () => {}, isNarrow = false, onClose = () => {} }) {
+export default function Sidebar({ groups, selId, onSelect, search, onSearch, selectedCountries, onCountryToggle, playClick = () => {} }) {
   const [sortMode, setSortMode] = useState("alpha");
 
   const avg = groups.length ? Math.round(groups.reduce((s, g) => s + g.techniques.length, 0) / groups.length) : 0;
@@ -26,38 +26,29 @@ export default function Sidebar({ groups, selId, onSelect, search, onSearch, sel
   });
 
   const isAll = selectedCountries.size === 0;
-  const width = isNarrow ? 220 : 230;
 
   return (
-    <div style={{ width, height: "100%", background: "#0d1117", borderRight: "1px solid #1e2d3d", display: "flex", flexDirection: "column", flexShrink: 0, overflowY: "auto" }}>
-      {/* Narrow: close button row */}
-      {isNarrow && (
-        <div style={{ padding: "8px 10px", borderBottom: "1px solid #1e2d3d", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
-          <span style={{ color: "#3d5168", fontSize: 9, letterSpacing: 2 }}>GROUP LIST</span>
-          <button onClick={onClose}
-            style={{ background: "none", border: "none", color: "#4a6378", cursor: "pointer", fontSize: 18, lineHeight: 1, padding: "2px 6px" }}>
-            ✕
-          </button>
-        </div>
-      )}
-
+    <div style={{ width: 230, height: "100vh", background: "#0d1117", borderRight: "1px solid #1e2d3d", display: "flex", flexDirection: "column", flexShrink: 0, overflowY: "auto" }}>
       <div style={{ padding: "10px 10px 6px", borderBottom: "1px solid #1e2d3d", flexShrink: 0 }}>
         <div style={{ color: "#3d5168", fontSize: 9, letterSpacing: 2, marginBottom: 6 }}>FILTER BY ORIGIN</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+          {/* ALL ボタン */}
           <button onClick={() => { playClick(); onCountryToggle("ALL"); }}
-            style={{ background: isAll ? "#00ff8833" : "transparent", border: `1px solid ${isAll ? "#00ff88" : "#1e2d3d"}`, borderRadius: 3, padding: "4px 7px", cursor: "pointer", fontSize: 11, color: isAll ? "#00ff88" : "#4a6378", fontFamily: "monospace", transition: "all 0.15s", minHeight: 32 }}>
+            style={{ background: isAll ? "#00ff8833" : "transparent", border: `1px solid ${isAll ? "#00ff88" : "#1e2d3d"}`, borderRadius: 3, padding: "3px 7px", cursor: "pointer", fontSize: 11, color: isAll ? "#00ff88" : "#4a6378", fontFamily: "monospace", transition: "all 0.15s" }}>
             🌐 ALL
           </button>
+          {/* 各国トグルボタン */}
           {Object.entries(COUNTRY_META).map(([code, m]) => {
             const active = selectedCountries.has(code);
             return (
               <button key={code} onClick={() => { playClick(); onCountryToggle(code); }}
-                style={{ background: active ? m.color + "33" : "transparent", border: `1px solid ${active ? m.color : "#1e2d3d"}`, borderRadius: 3, padding: "4px 7px", cursor: "pointer", fontSize: 11, color: active ? m.color : "#4a6378", fontFamily: "monospace", transition: "all 0.15s", fontWeight: active ? "bold" : "normal", minHeight: 32 }}>
+                style={{ background: active ? m.color + "33" : "transparent", border: `1px solid ${active ? m.color : "#1e2d3d"}`, borderRadius: 3, padding: "3px 7px", cursor: "pointer", fontSize: 11, color: active ? m.color : "#4a6378", fontFamily: "monospace", transition: "all 0.15s", fontWeight: active ? "bold" : "normal" }}>
                 {m.flag} {code}
               </button>
             );
           })}
         </div>
+        {/* 選択中の国の組み合わせ表示 */}
         {selectedCountries.size > 1 && (
           <div style={{ marginTop: 5, fontSize: 9, color: "#00d4ff", letterSpacing: 1 }}>
             {[...selectedCountries].map(c => COUNTRY_META[c]?.flag).join(" ")} {selectedCountries.size}カ国選択中
@@ -67,7 +58,7 @@ export default function Sidebar({ groups, selId, onSelect, search, onSearch, sel
 
       <div style={{ padding: "8px 10px", borderBottom: "1px solid #1e2d3d", flexShrink: 0 }}>
         <input value={search} onChange={e => onSearch(e.target.value)} placeholder="// search..."
-          style={{ width: "100%", background: "#070c12", border: "1px solid #1e2d3d", borderRadius: 4, padding: "7px 9px", color: "#8b949e", fontSize: 12, outline: "none", fontFamily: "monospace", boxSizing: "border-box" }} />
+          style={{ width: "100%", background: "#070c12", border: "1px solid #1e2d3d", borderRadius: 4, padding: "5px 9px", color: "#8b949e", fontSize: 11, outline: "none", fontFamily: "monospace", boxSizing: "border-box" }} />
       </div>
 
       <div style={{ padding: "5px 10px", borderBottom: "1px solid #1e2d3d", display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
@@ -75,17 +66,17 @@ export default function Sidebar({ groups, selId, onSelect, search, onSearch, sel
         <div style={{ marginLeft: "auto", display: "flex", gap: 3 }}>
           {SORT_MODES.map(mode => (
             <button key={mode} onClick={() => setSortMode(mode)}
-              style={{ background: sortMode === mode ? "#00d4ff22" : "transparent", border: `1px solid ${sortMode === mode ? "#00d4ff" : "#1e2d3d"}`, borderRadius: 3, padding: "4px 6px", cursor: "pointer", fontSize: 9, color: sortMode === mode ? "#00d4ff" : "#4a6378", fontFamily: "monospace", transition: "all 0.15s", minHeight: 30 }}>
+              style={{ background: sortMode === mode ? "#00d4ff22" : "transparent", border: `1px solid ${sortMode === mode ? "#00d4ff" : "#1e2d3d"}`, borderRadius: 3, padding: "2px 6px", cursor: "pointer", fontSize: 9, color: sortMode === mode ? "#00d4ff" : "#4a6378", fontFamily: "monospace", transition: "all 0.15s" }}>
               {SORT_LABELS[mode]}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="scroll-touch" style={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
+      <div style={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
         {sorted.map(g => (
           <div key={g.id} onClick={() => { playClick(); onSelect(g.id); }}
-            style={{ padding: "9px 12px", cursor: "pointer", borderLeft: `2px solid ${g.id === selId ? "#00ff88" : "transparent"}`, background: g.id === selId ? "#001a0d" : "transparent", transition: "all 0.1s" }}
+            style={{ padding: "7px 12px", cursor: "pointer", borderLeft: `2px solid ${g.id === selId ? "#00ff88" : "transparent"}`, background: g.id === selId ? "#001a0d" : "transparent", transition: "all 0.1s" }}
             onMouseEnter={e => { if (g.id !== selId) e.currentTarget.style.background = "#0f1923"; }}
             onMouseLeave={e => { if (g.id !== selId) e.currentTarget.style.background = "transparent"; }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -93,7 +84,7 @@ export default function Sidebar({ groups, selId, onSelect, search, onSearch, sel
                 {g.country?.flag} {g.name}
               </span>
             </div>
-            <div style={{ fontSize: 10, color: "#3d5168", marginTop: 2, display: "flex", gap: 8 }}>
+            <div style={{ fontSize: 10, color: "#3d5168", marginTop: 1, display: "flex", gap: 8 }}>
               <span>{g.id}</span>
               <span style={{ color: g.techniques.length > avg ? "#00ff88" : "#4a6378" }}>{g.techniques.length} techs</span>
             </div>

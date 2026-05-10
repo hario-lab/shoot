@@ -116,9 +116,9 @@ Write a cinematic but technically accurate narrative from initial access to impa
       {/* Stats row */}
       <div style={{ background: "#070c12", borderBottom: "1px solid #1e2d3d", padding: "12px 16px", display: "flex", gap: 12, alignItems: "flex-start", flexShrink: 0 }}>
         <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-          <StatCard label="TECHNIQUES" value={group.techniques.length} sub={`+ ${totalSubs} subtechs`} color="#00ff88" />
-          <StatCard label="TACTICS" value={usedTactics.length} sub={`of ${TACTIC_ORDER.length}`} color="#00d4ff" />
           <StatCard label="ORIGIN" value={group.country?.flag || "?"} sub={group.country?.name || "Unknown"} color={COUNTRY_META[group.country?.code]?.color || "#6b7280"} />
+          <StatCard label="TACTICS" value={usedTactics.length} sub={`of ${TACTIC_ORDER.length}`} color="#00d4ff" />
+          <StatCard label="TECHNIQUES" value={group.techniques.length} sub={`+ ${totalSubs} subtechs`} color="#00ff88" />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ color: "#3d5168", fontSize: 9, letterSpacing: 2, marginBottom: 4 }}>TACTIC DISTRIBUTION</div>

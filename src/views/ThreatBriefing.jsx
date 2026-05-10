@@ -53,7 +53,7 @@ Write a detailed SOC analyst briefing covering:
 Include specific technique IDs. Use technical detail appropriate for tier-2/3 SOC analysts.`;
 }
 
-export default function ThreatBriefing({ groups }) {
+export default function ThreatBriefing({ groups, isNarrow = false }) {
   const [selGroupId, setSelGroupId] = useState(groups[0]?.id || "");
   const [industry, setIndustry]     = useState("All Industries");
   const [period, setPeriod]         = useState("指定なし");
@@ -61,9 +61,11 @@ export default function ThreatBriefing({ groups }) {
   const [report, setReport]         = useState(null);
   const [history, setHistory]       = useState(loadHistory);
   const [selHistory, setSelHistory] = useState(null);
+  const [historyOpen, setHistoryOpen] = useState(true);
 
   const group = groups.find(g => g.id === selGroupId) || groups[0];
   const hasApiKey = !!getStoredApiKey();
+  const showHistoryPanel = !isNarrow || historyOpen;
 
   const generate = useCallback(async (type) => {
     if (!group || loading) return;
@@ -110,7 +112,7 @@ export default function ThreatBriefing({ groups }) {
 
   const inputStyle = {
     background: "#070c12", border: "1px solid #1e2d3d", borderRadius: 4,
-    padding: "6px 10px", color: "#c9d1d9", fontSize: 11, fontFamily: "monospace",
+    padding: "7px 10px", color: "#c9d1d9", fontSize: 11, fontFamily: "monospace",
     outline: "none", appearance: "none", cursor: "pointer",
   };
 
@@ -119,49 +121,61 @@ export default function ThreatBriefing({ groups }) {
       {/* Left: form + report */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         {/* Form */}
-        <div style={{ padding: "14px 20px", borderBottom: "1px solid #1e2d3d", background: "#0d1117", flexShrink: 0 }}>
-          <div style={{ color: "#3d5168", fontSize: 9, letterSpacing: 2, marginBottom: 12 }}>
-            レポート生成フォーム — Claude API を使用
+        <div style={{ padding: isNarrow ? "10px 14px" : "14px 20px", borderBottom: "1px solid #1e2d3d", background: "#0d1117", flexShrink: 0 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <div style={{ color: "#3d5168", fontSize: 9, letterSpacing: 2 }}>
+              レポート生成フォーム — Claude API
+            </div>
+            {/* History toggle — narrow only */}
+            {isNarrow && (
+              <button onClick={() => setHistoryOpen(o => !o)}
+                style={{ background: historyOpen ? "#00d4ff22" : "transparent", border: `1px solid ${historyOpen ? "#00d4ff" : "#1e2d3d"}`, borderRadius: 4, padding: "5px 10px", color: historyOpen ? "#00d4ff" : "#4a6378", cursor: "pointer", fontSize: 10, fontFamily: "monospace", minHeight: 34 }}>
+                📋 履歴 ({history.length})
+              </button>
+            )}
           </div>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end" }}>
-            <div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "flex-end" }}>
+            <div style={{ flex: isNarrow ? "1 1 100%" : "0 0 auto" }}>
               <div style={{ color: "#3d5168", fontSize: 9, marginBottom: 4 }}>対象グループ</div>
-              <select value={selGroupId} onChange={e => setSelGroupId(e.target.value)} style={{ ...inputStyle, width: 200 }}>
+              <select value={selGroupId} onChange={e => setSelGroupId(e.target.value)}
+                style={{ ...inputStyle, width: isNarrow ? "100%" : 200 }}>
                 {groups.map(g => <option key={g.id} value={g.id}>{g.country?.flag} {g.name}</option>)}
               </select>
             </div>
-            <div>
+            <div style={{ flex: isNarrow ? "1 1 calc(50% - 4px)" : "0 0 auto" }}>
               <div style={{ color: "#3d5168", fontSize: 9, marginBottom: 4 }}>対象業種</div>
-              <select value={industry} onChange={e => setIndustry(e.target.value)} style={{ ...inputStyle, width: 160 }}>
+              <select value={industry} onChange={e => setIndustry(e.target.value)}
+                style={{ ...inputStyle, width: isNarrow ? "100%" : 160 }}>
                 {INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}
               </select>
             </div>
-            <div>
+            <div style={{ flex: isNarrow ? "1 1 calc(50% - 4px)" : "0 0 auto" }}>
               <div style={{ color: "#3d5168", fontSize: 9, marginBottom: 4 }}>対象期間</div>
-              <select value={period} onChange={e => setPeriod(e.target.value)} style={{ ...inputStyle, width: 140 }}>
+              <select value={period} onChange={e => setPeriod(e.target.value)}
+                style={{ ...inputStyle, width: isNarrow ? "100%" : 140 }}>
                 {PERIODS.map(p => <option key={p} value={p}>{p}</option>)}
               </select>
             </div>
-            <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", flex: isNarrow ? "1 1 100%" : "0 0 auto" }}>
               <button onClick={() => generate("executive")} disabled={loading || !hasApiKey}
-                style={{ background: loading ? "#012a15" : "#001a0d", border: `1px solid ${hasApiKey ? "#00ff88" : "#1e2d3d"}`, borderRadius: 4, padding: "7px 14px", color: hasApiKey ? "#00ff88" : "#4a6378", cursor: (loading || !hasApiKey) ? "default" : "pointer", fontSize: 11, fontFamily: "monospace" }}>
-                {loading ? "生成中..." : "📋 経営層向けレポート"}
+                style={{ flex: isNarrow ? 1 : "0 0 auto", background: loading ? "#012a15" : "#001a0d", border: `1px solid ${hasApiKey ? "#00ff88" : "#1e2d3d"}`, borderRadius: 4, padding: "8px 12px", color: hasApiKey ? "#00ff88" : "#4a6378", cursor: (loading || !hasApiKey) ? "default" : "pointer", fontSize: 11, fontFamily: "monospace", minHeight: 40, whiteSpace: "nowrap" }}>
+                {loading ? "生成中..." : "📋 経営層向け"}
               </button>
               <button onClick={() => generate("soc")} disabled={loading || !hasApiKey}
-                style={{ background: "#0a0d1a", border: `1px solid ${hasApiKey ? "#3b82f6" : "#1e2d3d"}`, borderRadius: 4, padding: "7px 14px", color: hasApiKey ? "#3b82f6" : "#4a6378", cursor: (loading || !hasApiKey) ? "default" : "pointer", fontSize: 11, fontFamily: "monospace" }}>
-                {loading ? "生成中..." : "🔍 SOCアナリスト向けレポート"}
+                style={{ flex: isNarrow ? 1 : "0 0 auto", background: "#0a0d1a", border: `1px solid ${hasApiKey ? "#3b82f6" : "#1e2d3d"}`, borderRadius: 4, padding: "8px 12px", color: hasApiKey ? "#3b82f6" : "#4a6378", cursor: (loading || !hasApiKey) ? "default" : "pointer", fontSize: 11, fontFamily: "monospace", minHeight: 40, whiteSpace: "nowrap" }}>
+                {loading ? "生成中..." : "🔍 SOCアナリスト向け"}
               </button>
             </div>
           </div>
-          {group && (
-            <div style={{ marginTop: 10, color: "#4a6378", fontSize: 10 }}>
+          {group && !isNarrow && (
+            <div style={{ marginTop: 8, color: "#4a6378", fontSize: 10 }}>
               {group.country?.flag} {group.name} · {group.techniques.length} techniques · {group.description?.slice(0, 100)}…
             </div>
           )}
         </div>
 
         {/* Report content */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
+        <div className="scroll-touch" style={{ flex: 1, overflowY: "auto", padding: isNarrow ? "12px 14px" : "16px 20px" }}>
           {loading && (
             <div style={{ color: "#00ff8866", fontSize: 12, textAlign: "center", marginTop: 40 }}>
               <div style={{ marginBottom: 8 }}>レポートを生成中...</div>
@@ -170,21 +184,21 @@ export default function ThreatBriefing({ groups }) {
           )}
           {!loading && displayReport && (
             <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
                 <div>
                   <span style={{ color: displayReport.type === "executive" ? "#00ff88" : "#3b82f6", fontWeight: "bold", fontSize: 13 }}>
                     {displayReport.type === "executive" ? "📋 経営層向けレポート" : "🔍 SOCアナリスト向けレポート"}
                   </span>
                   <span style={{ color: "#3d5168", fontSize: 11, marginLeft: 10 }}>
-                    {displayReport.groupName} · {displayReport.industry} · {displayReport.period}
+                    {displayReport.groupName} · {displayReport.industry}
                   </span>
                 </div>
                 <button onClick={exportMd}
-                  style={{ background: "transparent", border: "1px solid #1e2d3d", borderRadius: 4, padding: "4px 12px", color: "#4a6378", cursor: "pointer", fontSize: 10, fontFamily: "monospace" }}>
-                  ⬇ .md エクスポート
+                  style={{ background: "transparent", border: "1px solid #1e2d3d", borderRadius: 4, padding: "5px 12px", color: "#4a6378", cursor: "pointer", fontSize: 10, fontFamily: "monospace", minHeight: 34 }}>
+                  ⬇ .md
                 </button>
               </div>
-              <div style={{ background: "#0d1117", border: "1px solid #1e2d3d", borderRadius: 6, padding: "16px 20px", color: "#c9d1d9", fontSize: 12, lineHeight: 1.8, whiteSpace: "pre-wrap", fontFamily: "monospace" }}>
+              <div style={{ background: "#0d1117", border: "1px solid #1e2d3d", borderRadius: 6, padding: isNarrow ? "12px 14px" : "16px 20px", color: "#c9d1d9", fontSize: 12, lineHeight: 1.8, whiteSpace: "pre-wrap", fontFamily: "monospace" }}>
                 {displayReport.text}
               </div>
               <div style={{ color: "#3d5168", fontSize: 10, marginTop: 8 }}>
@@ -195,7 +209,7 @@ export default function ThreatBriefing({ groups }) {
           {!loading && !displayReport && (
             <div style={{ textAlign: "center", marginTop: 60 }}>
               {!hasApiKey ? (
-                <div style={{ display: "inline-block", background: "#f59e0b11", border: "1px solid #f59e0b44", borderRadius: 6, padding: "20px 28px", maxWidth: 380 }}>
+                <div style={{ display: "inline-block", background: "#f59e0b11", border: "1px solid #f59e0b44", borderRadius: 6, padding: "20px 24px", maxWidth: 340 }}>
                   <div style={{ color: "#f59e0b", fontSize: 14, marginBottom: 10 }}>⚠ APIキーが未設定です</div>
                   <div style={{ color: "#8b949e", fontSize: 12, lineHeight: 1.7, marginBottom: 12 }}>
                     右上の ⚙ 設定 ボタンからAnthropicのAPIキーを入力してください。
@@ -215,45 +229,53 @@ export default function ThreatBriefing({ groups }) {
         </div>
       </div>
 
-      {/* Right: history panel */}
-      <div style={{ width: 240, borderLeft: "1px solid #1e2d3d", background: "#0d1117", display: "flex", flexDirection: "column", flexShrink: 0 }}>
-        <div style={{ padding: "10px 12px", borderBottom: "1px solid #1e2d3d", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ color: "#3d5168", fontSize: 9, letterSpacing: 2 }}>レポート履歴</span>
-          <span style={{ color: "#4a6378", fontSize: 9 }}>{history.length}/{MAX_HISTORY}</span>
-        </div>
-        <div style={{ flex: 1, overflowY: "auto" }}>
-          {history.length === 0 ? (
-            <div style={{ color: "#3d5168", fontSize: 10, textAlign: "center", padding: "20px 12px" }}>
-              履歴なし
+      {/* Right: history panel — collapsible on narrow */}
+      {showHistoryPanel && (
+        <div style={{ width: isNarrow ? 200 : 240, borderLeft: "1px solid #1e2d3d", background: "#0d1117", display: "flex", flexDirection: "column", flexShrink: 0 }}>
+          <div style={{ padding: "8px 12px", borderBottom: "1px solid #1e2d3d", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ color: "#3d5168", fontSize: 9, letterSpacing: 2 }}>レポート履歴</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ color: "#4a6378", fontSize: 9 }}>{history.length}/{MAX_HISTORY}</span>
+              {isNarrow && (
+                <button onClick={() => setHistoryOpen(false)}
+                  style={{ background: "none", border: "none", color: "#4a6378", cursor: "pointer", fontSize: 16, padding: "2px 4px" }}>✕</button>
+              )}
             </div>
-          ) : history.map(h => (
-            <div key={h.id}
-              onClick={() => setSelHistory(h)}
-              style={{ padding: "10px 12px", borderBottom: "1px solid #1e2d3d", cursor: "pointer", background: selHistory?.id === h.id ? "#070c12" : "transparent", transition: "background 0.1s" }}
-              onMouseEnter={e => { if (selHistory?.id !== h.id) e.currentTarget.style.background = "#070c12"; }}
-              onMouseLeave={e => { if (selHistory?.id !== h.id) e.currentTarget.style.background = "transparent"; }}>
-              <div style={{ display: "flex", gap: 4, marginBottom: 3 }}>
-                <span style={{ fontSize: 10, color: h.type === "executive" ? "#00ff88" : "#3b82f6" }}>
-                  {h.type === "executive" ? "📋 経営" : "🔍 SOC"}
-                </span>
-                <span style={{ color: "#8b949e", fontSize: 10 }}>{h.groupName}</span>
-              </div>
-              <div style={{ color: "#4a6378", fontSize: 9 }}>{h.industry} · {h.period}</div>
-              <div style={{ color: "#3d5168", fontSize: 9, marginTop: 2 }}>
-                {new Date(h.createdAt).toLocaleString("ja-JP", { month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit" })}
-              </div>
-            </div>
-          ))}
-        </div>
-        {history.length > 0 && (
-          <div style={{ padding: "8px 12px", borderTop: "1px solid #1e2d3d" }}>
-            <button onClick={() => { setHistory([]); saveHistory([]); setSelHistory(null); }}
-              style={{ background: "transparent", border: "1px solid #1e2d3d", borderRadius: 3, padding: "4px 8px", color: "#3d5168", cursor: "pointer", fontSize: 9, width: "100%", fontFamily: "monospace" }}>
-              履歴をクリア
-            </button>
           </div>
-        )}
-      </div>
+          <div className="scroll-touch" style={{ flex: 1, overflowY: "auto" }}>
+            {history.length === 0 ? (
+              <div style={{ color: "#3d5168", fontSize: 10, textAlign: "center", padding: "20px 12px" }}>
+                履歴なし
+              </div>
+            ) : history.map(h => (
+              <div key={h.id}
+                onClick={() => setSelHistory(h)}
+                style={{ padding: "10px 12px", borderBottom: "1px solid #1e2d3d", cursor: "pointer", background: selHistory?.id === h.id ? "#070c12" : "transparent", transition: "background 0.1s" }}
+                onMouseEnter={e => { if (selHistory?.id !== h.id) e.currentTarget.style.background = "#070c12"; }}
+                onMouseLeave={e => { if (selHistory?.id !== h.id) e.currentTarget.style.background = "transparent"; }}>
+                <div style={{ display: "flex", gap: 4, marginBottom: 3 }}>
+                  <span style={{ fontSize: 10, color: h.type === "executive" ? "#00ff88" : "#3b82f6" }}>
+                    {h.type === "executive" ? "📋" : "🔍"}
+                  </span>
+                  <span style={{ color: "#8b949e", fontSize: 10 }}>{h.groupName}</span>
+                </div>
+                <div style={{ color: "#4a6378", fontSize: 9 }}>{h.industry}</div>
+                <div style={{ color: "#3d5168", fontSize: 9, marginTop: 2 }}>
+                  {new Date(h.createdAt).toLocaleString("ja-JP", { month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit" })}
+                </div>
+              </div>
+            ))}
+          </div>
+          {history.length > 0 && (
+            <div style={{ padding: "8px 12px", borderTop: "1px solid #1e2d3d" }}>
+              <button onClick={() => { setHistory([]); saveHistory([]); setSelHistory(null); }}
+                style={{ background: "transparent", border: "1px solid #1e2d3d", borderRadius: 3, padding: "5px 8px", color: "#3d5168", cursor: "pointer", fontSize: 9, width: "100%", fontFamily: "monospace", minHeight: 32 }}>
+                履歴をクリア
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

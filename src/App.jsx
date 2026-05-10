@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { COUNTRY_META, TACTIC_ORDER, TACTIC_SHORT } from "./constants.js";
 import { useAttackData } from "./hooks/useAttackData.js";
 import { useSound } from "./hooks/useSound.js";
+import { useWindowSize } from "./hooks/useWindowSize.js";
 import SoundControl from "./components/SoundControl.jsx";
 import Sidebar from "./components/Sidebar.jsx";
 import NetworkGraph from "./components/NetworkGraph.jsx";
@@ -15,15 +16,20 @@ import ThreatBriefing from "./views/ThreatBriefing.jsx";
 
 const TABS = [
   ["killchain",  "⬛ KILL CHAIN"],
-  ["network",    "◉ NETWORK GRAPH"],
-  ["impact",     "⚡ IMPACT ANALYSIS"],
-  ["defense",    "🛡 DEFENSE GAP MAP"],
+  ["network",    "◉ NETWORK"],
+  ["impact",     "⚡ IMPACT"],
+  ["defense",    "🛡 DEFENSE"],
   ["briefing",   "🤖 AI BRIEFING"],
 ];
+
+const SIDEBAR_VIEWS = new Set(["killchain", "network"]);
 
 export default function App() {
   const { groups, links, techniques, metadata, loading, error, isStale, triggerUpdate } = useAttackData();
   const { soundType, setSoundType, playClick, SOUND_TYPES } = useSound();
+  const { w } = useWindowSize();
+  const isNarrow = w < 900;
+
   const [selId, setSelId]             = useState(null);
   const [view, setView]               = useState("killchain");
   const [search, setSearch]           = useState("");
@@ -32,11 +38,24 @@ export default function App() {
   const [updateLoading, setUpdateLoading]   = useState(false);
   const [showSettings, setShowSettings]     = useState(false);
   const [showAbout, setShowAbout]           = useState(false);
+  const [sidebarOpen, setSidebarOpen]       = useState(true);
+
+  // Auto-close sidebar when switching to narrow
+  useEffect(() => {
+    if (isNarrow) setSidebarOpen(false);
+    else setSidebarOpen(true);
+  }, [isNarrow]);
+
+  const hasSidebar = SIDEBAR_VIEWS.has(view);
+  const showSidebar = hasSidebar && (!isNarrow || sidebarOpen);
 
   const effectiveSelId = selId || groups[0]?.id;
   const group = groups.find(g => g.id === effectiveSelId);
 
-  const handleSelect = id => { setSelId(id); };
+  const handleSelect = id => {
+    setSelId(id);
+    if (isNarrow) setSidebarOpen(false);
+  };
 
   const handleUpdate = async source => {
     setUpdateLoading(true);
@@ -56,55 +75,65 @@ export default function App() {
     });
   };
 
-  // Network view needs links filtered by selectedCountries
   const networkGroups = selectedCountries.size === 0 ? groups : groups.filter(g => selectedCountries.has(g.country?.code));
 
   return (
-    <div style={{ height: "100vh", overflow: "hidden", background: "#070c12", color: "#c9d1d9", fontFamily: "monospace", display: "flex", flexDirection: "column" }}>
+    <div style={{ height: "100dvh", overflow: "hidden", background: "#070c12", color: "#c9d1d9", fontFamily: "monospace", display: "flex", flexDirection: "column" }}>
       {/* Header */}
-      <div style={{ background: "#0d1117", borderBottom: "1px solid #1e2d3d", padding: "9px 20px", display: "flex", alignItems: "center", gap: 16, flexShrink: 0 }}>
-        <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.2 }}>
-          <div style={{ color: "#00ff88", fontWeight: "bold", fontSize: 13, letterSpacing: 3 }}>◈ SHOOT</div>
-          <div style={{ color: "#8b949e", fontSize: 9, letterSpacing: 1, whiteSpace: "nowrap" }}>Structured Hunting of Online Threats</div>
-        </div>
-        <div style={{ color: "#3d5168", fontSize: 11 }}>MITRE ATT&CK® Enterprise · {loading ? "…" : groups.length} groups</div>
+      <div style={{ background: "#0d1117", borderBottom: "1px solid #1e2d3d", padding: "8px 12px", display: "flex", alignItems: "center", gap: 10, flexShrink: 0, minHeight: 44 }}>
+        {/* Sidebar toggle — narrow screens only */}
+        {hasSidebar && isNarrow && (
+          <button onClick={() => setSidebarOpen(o => !o)}
+            style={{ background: sidebarOpen ? "#00ff8822" : "transparent", border: `1px solid ${sidebarOpen ? "#00ff88" : "#1e2d3d"}`, borderRadius: 4, padding: "6px 10px", fontSize: 14, color: sidebarOpen ? "#00ff88" : "#4a6378", cursor: "pointer", fontFamily: "monospace", flexShrink: 0, minWidth: 36, minHeight: 36 }}>
+            ☰
+          </button>
+        )}
 
-        {/* Last updated badge */}
-        {metadata?.lastUpdated && (
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.2, flexShrink: 0 }}>
+          <div style={{ color: "#00ff88", fontWeight: "bold", fontSize: 13, letterSpacing: 3 }}>◈ SHOOT</div>
+          {!isNarrow && (
+            <div style={{ color: "#8b949e", fontSize: 9, letterSpacing: 1, whiteSpace: "nowrap" }}>Structured Hunting of Online Threats</div>
+          )}
+        </div>
+
+        {!isNarrow && (
+          <div style={{ color: "#3d5168", fontSize: 11, flexShrink: 0 }}>MITRE ATT&CK® · {loading ? "…" : groups.length} groups</div>
+        )}
+
+        {/* Last updated badge — hide on narrow */}
+        {!isNarrow && metadata?.lastUpdated && (
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
             {isStale && (
               <span style={{ background: "#f59e0b22", border: "1px solid #f59e0b55", borderRadius: 3, padding: "2px 6px", color: "#f59e0b", fontSize: 9, letterSpacing: 1 }}>
                 ⚠ STALE
               </span>
             )}
             <span style={{ color: "#3d5168", fontSize: 10 }}>
-              Last updated: {fmtDate(metadata.lastUpdated)}
+              {fmtDate(metadata.lastUpdated)}
             </span>
           </div>
         )}
 
-        {/* Tabs */}
-        <div style={{ marginLeft: "auto", display: "flex", gap: 4, flexWrap: "wrap" }}>
+        {/* Tabs — scrollable row, no wrap */}
+        <div className="tabs-row" style={{ marginLeft: "auto", display: "flex", gap: 4, overflowX: "auto", flexShrink: 1, minWidth: 0 }}>
           {TABS.map(([v, label]) => (
             <button key={v} onClick={() => { playClick(); setView(v); }}
-              style={{ background: view === v ? "#00ff8822" : "transparent", border: `1px solid ${view === v ? "#00ff88" : "#1e2d3d"}`, borderRadius: 4, padding: "4px 12px", fontSize: 11, color: view === v ? "#00ff88" : "#4a6378", cursor: "pointer", fontFamily: "monospace", letterSpacing: 1, transition: "all 0.15s" }}>
+              style={{ background: view === v ? "#00ff8822" : "transparent", border: `1px solid ${view === v ? "#00ff88" : "#1e2d3d"}`, borderRadius: 4, padding: "6px 10px", fontSize: 11, color: view === v ? "#00ff88" : "#4a6378", cursor: "pointer", fontFamily: "monospace", letterSpacing: 1, transition: "all 0.15s", flexShrink: 0, whiteSpace: "nowrap", minHeight: 36 }}>
               {label}
             </button>
           ))}
-          {/* Data update button */}
           <button onClick={() => { playClick(); setShowUpdateModal(true); }}
-            style={{ background: isStale ? "#f59e0b22" : "transparent", border: `1px solid ${isStale ? "#f59e0b" : "#1e2d3d"}`, borderRadius: 4, padding: "4px 12px", fontSize: 11, color: isStale ? "#f59e0b" : "#4a6378", cursor: "pointer", fontFamily: "monospace", letterSpacing: 1 }}>
-            ↻ Update Data
+            style={{ background: isStale ? "#f59e0b22" : "transparent", border: `1px solid ${isStale ? "#f59e0b" : "#1e2d3d"}`, borderRadius: 4, padding: "6px 10px", fontSize: 11, color: isStale ? "#f59e0b" : "#4a6378", cursor: "pointer", fontFamily: "monospace", letterSpacing: 1, flexShrink: 0, whiteSpace: "nowrap", minHeight: 36 }}>
+            ↻{!isNarrow && " Update"}
           </button>
           <button onClick={() => { playClick(); setShowSettings(true); }}
-            style={{ background: "transparent", border: "1px solid #1e2d3d", borderRadius: 4, padding: "4px 12px", fontSize: 11, color: "#4a6378", cursor: "pointer", fontFamily: "monospace", letterSpacing: 1 }}>
-            ⚙ Settings
+            style={{ background: "transparent", border: "1px solid #1e2d3d", borderRadius: 4, padding: "6px 10px", fontSize: 11, color: "#4a6378", cursor: "pointer", fontFamily: "monospace", letterSpacing: 1, flexShrink: 0, minHeight: 36 }}>
+            ⚙
           </button>
           <button onClick={() => { playClick(); setShowAbout(true); }}
-            style={{ background: "transparent", border: "1px solid #1e2d3d", borderRadius: 4, padding: "4px 12px", fontSize: 11, color: "#4a6378", cursor: "pointer", fontFamily: "monospace", letterSpacing: 1 }}>
-            ⓘ About
+            style={{ background: "transparent", border: "1px solid #1e2d3d", borderRadius: 4, padding: "6px 10px", fontSize: 11, color: "#4a6378", cursor: "pointer", fontFamily: "monospace", letterSpacing: 1, flexShrink: 0, minHeight: 36 }}>
+            ⓘ
           </button>
-          {/* Sound selector */}
           <SoundControl
             soundType={soundType}
             setSoundType={setSoundType}
@@ -130,25 +159,35 @@ export default function App() {
 
       {/* Main layout */}
       {!!groups.length && (
-        <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-          {/* Sidebar — shown for killchain & network views */}
-          {(view === "killchain" || view === "network") && (
-            <Sidebar
-              groups={groups}
-              selId={effectiveSelId}
-              onSelect={handleSelect}
-              search={search}
-              onSearch={setSearch}
-              selectedCountries={selectedCountries}
-              onCountryToggle={toggleCountry}
-              playClick={playClick}
-            />
+        <div style={{ display: "flex", flex: 1, overflow: "hidden", position: "relative" }}>
+          {/* Sidebar overlay backdrop — narrow only */}
+          {isNarrow && sidebarOpen && hasSidebar && (
+            <div onClick={() => setSidebarOpen(false)}
+              style={{ position: "absolute", inset: 0, background: "#00000066", zIndex: 10 }} />
+          )}
+
+          {/* Sidebar */}
+          {showSidebar && (
+            <div style={{ position: isNarrow ? "absolute" : "relative", top: 0, left: 0, bottom: 0, zIndex: isNarrow ? 20 : "auto", flexShrink: 0 }}>
+              <Sidebar
+                groups={groups}
+                selId={effectiveSelId}
+                onSelect={handleSelect}
+                search={search}
+                onSearch={setSearch}
+                selectedCountries={selectedCountries}
+                onCountryToggle={toggleCountry}
+                playClick={playClick}
+                isNarrow={isNarrow}
+                onClose={() => setSidebarOpen(false)}
+              />
+            </div>
           )}
 
           {/* Content area */}
           <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {view === "killchain" && (
-              <KillChain group={group} groups={groups} onSelectGroup={handleSelect} playClick={playClick} />
+              <KillChain group={group} groups={groups} onSelectGroup={handleSelect} playClick={playClick} isNarrow={isNarrow} />
             )}
 
             {view === "network" && (
@@ -165,16 +204,16 @@ export default function App() {
                     <div style={{ borderTop: "1px solid #1e2d3d", marginTop: 8, paddingTop: 8, color: "#3d5168", fontSize: 9, lineHeight: 1.6 }}>
                       エッジの太さ = 共有テクニック数<br />
                       閾値: 7以上で表示<br />
-                      ドラッグ / スクロールでズーム
+                      ドラッグ / ピンチでズーム
                     </div>
                   </div>
                   {group && (
-                    <div style={{ position: "absolute", top: 12, left: 12, zIndex: 10, background: "#0d1117ee", border: "1px solid #00ff8833", borderRadius: 6, padding: "10px 14px", maxWidth: 220 }}>
+                    <div style={{ position: "absolute", top: 12, left: 12, zIndex: 10, background: "#0d1117ee", border: "1px solid #00ff8833", borderRadius: 6, padding: "10px 14px", maxWidth: 200 }}>
                       <div style={{ color: "#00ff88", fontWeight: "bold", fontSize: 12 }}>{group.country?.flag} {group.name}</div>
                       <div style={{ color: "#3d5168", fontSize: 10, marginBottom: 6 }}>{group.id}</div>
                       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, paddingBottom: 4, borderBottom: "1px solid #1e2d3d" }}>
                         <span style={{ fontSize: 9, color: "#3d5168" }}>関連グループ</span>
-                        <span style={{ fontSize: 9, color: "#3d5168" }}>共有テクニック数</span>
+                        <span style={{ fontSize: 9, color: "#3d5168" }}>共有数</span>
                       </div>
                       {links
                         .filter(l => (l.source === effectiveSelId || l.target === effectiveSelId) && l.value >= 5)
@@ -211,28 +250,34 @@ export default function App() {
                 groups={groups}
                 onSelectGroup={handleSelect}
                 onSwitchToKillChain={() => setView("killchain")}
+                isNarrow={isNarrow}
               />
             )}
 
             {view === "defense" && (
-              <DefenseGapMap groups={groups} techniques={techniques} />
+              <DefenseGapMap groups={groups} techniques={techniques} isNarrow={isNarrow} />
             )}
 
             {view === "briefing" && (
-              <ThreatBriefing groups={groups} />
+              <ThreatBriefing groups={groups} isNarrow={isNarrow} />
             )}
           </div>
         </div>
       )}
 
       {/* Footer */}
-      <div style={{ background: "#0d1117", borderTop: "1px solid #1e2d3d", padding: "6px 20px", flexShrink: 0, textAlign: "center", fontSize: 10, color: "#3d5168" }}>
-        Powered by MITRE ATT&amp;CK® &nbsp;|&nbsp; © {metadata?.mitreYear ?? new Date().getFullYear()} The MITRE Corporation. This work is reproduced and distributed with the permission of The MITRE Corporation. &nbsp;|&nbsp;
-        <a href="https://attack.mitre.org/resources/legal-and-branding/terms-of-use/" target="_blank" rel="noreferrer" style={{ color: "#3d5168", textDecoration: "underline" }}>ATT&amp;CK Terms of Use</a>
-        &nbsp;|&nbsp; © {metadata?.mitreYear ?? new Date().getFullYear()} <a href="https://hariolab.net" target="_blank" rel="noreferrer" style={{ color: "#3d5168", textDecoration: "underline" }}>hario-lab</a>
+      <div style={{ background: "#0d1117", borderTop: "1px solid #1e2d3d", padding: "6px 16px", flexShrink: 0, textAlign: "center", fontSize: 10, color: "#3d5168" }}>
+        {isNarrow ? (
+          <>MITRE ATT&amp;CK® · © {metadata?.mitreYear ?? new Date().getFullYear()} The MITRE Corporation</>
+        ) : (
+          <>
+            Powered by MITRE ATT&amp;CK® &nbsp;|&nbsp; © {metadata?.mitreYear ?? new Date().getFullYear()} The MITRE Corporation. This work is reproduced and distributed with the permission of The MITRE Corporation. &nbsp;|&nbsp;
+            <a href="https://attack.mitre.org/resources/legal-and-branding/terms-of-use/" target="_blank" rel="noreferrer" style={{ color: "#3d5168", textDecoration: "underline" }}>ATT&amp;CK Terms of Use</a>
+            &nbsp;|&nbsp; © {metadata?.mitreYear ?? new Date().getFullYear()} <a href="https://hariolab.net" target="_blank" rel="noreferrer" style={{ color: "#3d5168", textDecoration: "underline" }}>hario-lab</a>
+          </>
+        )}
       </div>
 
-      {/* Data update modal */}
       {showUpdateModal && (
         <DataUpdateModal
           metadata={metadata}
